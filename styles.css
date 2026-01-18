@@ -141,6 +141,10 @@ button:disabled {
     margin-bottom: 10px;
 }
 
+.instructions h3:not(:first-child) {
+    margin-top: 15px;
+}
+
 .instructions p {
     color: #e0e0ff;
     font-size: 12px;
@@ -160,6 +164,7 @@ button:disabled {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     image-rendering: pixelated;
+    touch-action: none;
 }
 
 @media (max-width: 768px) {

@@ -453,6 +453,73 @@ class Tetris {
                     break;
             }
         });
+
+        this.setupTouchControls();
+    }
+
+    setupTouchControls() {
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let lastTouchX = 0;
+        let accumulatedDeltaX = 0;
+        const TAP_THRESHOLD = 150; // ms - max time for a tap
+        const TAP_MOVE_THRESHOLD = 15; // pixels - max movement for a tap
+        const MOVE_THRESHOLD = BLOCK_SIZE * 0.6; // pixels to move one column
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (this.gameOver || this.isPaused || !this.currentPiece) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            lastTouchX = touch.clientX;
+            touchStartTime = Date.now();
+            accumulatedDeltaX = 0;
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (this.gameOver || this.isPaused || !this.currentPiece) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - lastTouchX;
+            accumulatedDeltaX += deltaX;
+
+            // Move piece when accumulated movement exceeds threshold
+            while (accumulatedDeltaX >= MOVE_THRESHOLD) {
+                this.moveRight();
+                accumulatedDeltaX -= MOVE_THRESHOLD;
+            }
+            while (accumulatedDeltaX <= -MOVE_THRESHOLD) {
+                this.moveLeft();
+                accumulatedDeltaX += MOVE_THRESHOLD;
+            }
+
+            // Soft drop when swiping down
+            const deltaY = touch.clientY - touchStartY;
+            if (deltaY > BLOCK_SIZE * 2) {
+                this.softDrop();
+                touchStartY = touch.clientY;
+            }
+
+            lastTouchX = touch.clientX;
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            if (this.gameOver || this.isPaused || !this.currentPiece) return;
+            e.preventDefault();
+
+            const touchEndTime = Date.now();
+            const touchDuration = touchEndTime - touchStartTime;
+
+            // Detect tap (short touch with minimal movement)
+            const totalMoveX = Math.abs(lastTouchX - touchStartX);
+            if (touchDuration < TAP_THRESHOLD && totalMoveX < TAP_MOVE_THRESHOLD) {
+                this.rotate();
+            }
+        }, { passive: false });
     }
 }
 
