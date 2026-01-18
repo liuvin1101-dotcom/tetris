@@ -422,6 +422,11 @@ class Tetris {
         document.getElementById('startBtn').addEventListener('click', () => this.start());
         document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
         document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+        document.getElementById('dropBtn').addEventListener('click', () => {
+            if (!this.gameOver && !this.isPaused && this.currentPiece) {
+                this.hardDrop();
+            }
+        });
 
         document.addEventListener('keydown', (e) => {
             if (this.gameOver || this.isPaused || !this.currentPiece) return;
