@@ -38,7 +38,7 @@ const TETROMINOES = {
 // Supabase Configuration
 const SUPABASE_URL = 'https://qjsgbmyqcqvyqojucvar.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_wmqwFElSxCC2JNY8_KmdCQ_c1MmFjRm';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Leaderboard Manager
 class Leaderboard {
@@ -49,7 +49,7 @@ class Leaderboard {
 
     async fetchScores() {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('leaderboard')
                 .select('name, score')
                 .order('score', { ascending: false })
@@ -68,7 +68,7 @@ class Leaderboard {
         if (score === 0) return;
 
         try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('leaderboard')
                 .insert([{ name, score }]);
 
