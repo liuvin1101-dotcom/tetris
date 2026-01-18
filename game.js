@@ -35,42 +35,66 @@ const TETROMINOES = {
     }
 };
 
+// Supabase Configuration
+const SUPABASE_URL = 'https://qjsgbmyqcqvyqojucvar.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_wmqwFElSxCC2JNY8_KmdCQ_c1MmFjRm';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Leaderboard Manager
 class Leaderboard {
     constructor() {
         this.maxEntries = 10;
-        this.storageKey = 'tetrisLeaderboard';
+        this.scores = [];
     }
 
-    getScores() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
+    async fetchScores() {
+        try {
+            const { data, error } = await supabase
+                .from('leaderboard')
+                .select('name, score')
+                .order('score', { ascending: false })
+                .limit(this.maxEntries);
+
+            if (error) throw error;
+            this.scores = data || [];
+            return this.scores;
+        } catch (error) {
+            console.error('Error fetching scores:', error);
+            return [];
+        }
     }
 
-    addScore(name, score) {
+    async addScore(name, score) {
         if (score === 0) return;
 
-        const scores = this.getScores();
-        scores.push({ name, score, date: Date.now() });
-        scores.sort((a, b) => b.score - a.score);
+        try {
+            const { error } = await supabase
+                .from('leaderboard')
+                .insert([{ name, score }]);
 
-        // Keep only top entries
-        const trimmed = scores.slice(0, this.maxEntries);
-        localStorage.setItem(this.storageKey, JSON.stringify(trimmed));
+            if (error) throw error;
+            await this.fetchScores();
+        } catch (error) {
+            console.error('Error adding score:', error);
+        }
     }
 
-    render(containerId) {
+    async render(containerId) {
         const container = document.getElementById(containerId);
-        const scores = this.getScores();
+
+        // Show loading state
+        container.innerHTML = '<li style="color: #b0b0ff; text-align: center;">Loading...</li>';
+
+        await this.fetchScores();
 
         container.innerHTML = '';
 
-        if (scores.length === 0) {
+        if (this.scores.length === 0) {
             container.innerHTML = '<li style="color: #b0b0ff; text-align: center;">No scores yet</li>';
             return;
         }
 
-        scores.forEach((entry, index) => {
+        this.scores.forEach((entry, index) => {
             const li = document.createElement('li');
             li.innerHTML = `
                 <span class="rank">${index + 1}.</span>
@@ -105,8 +129,12 @@ class Tetris {
 
         this.setupEventListeners();
         this.nextPiece = this.getRandomPiece();
-        this.leaderboard.render('leaderboardList');
-        this.leaderboard.render('leaderboardListMobile');
+        this.initLeaderboard();
+    }
+
+    async initLeaderboard() {
+        await this.leaderboard.render('leaderboardList');
+        await this.leaderboard.render('leaderboardListMobile');
     }
 
     createBoard() {
@@ -411,12 +439,12 @@ class Tetris {
         document.getElementById('lines').textContent = this.lines;
     }
 
-    endGame() {
+    async endGame() {
         // Save score to leaderboard
         if (this.playerName && this.score > 0) {
-            this.leaderboard.addScore(this.playerName, this.score);
-            this.leaderboard.render('leaderboardList');
-            this.leaderboard.render('leaderboardListMobile');
+            await this.leaderboard.addScore(this.playerName, this.score);
+            await this.leaderboard.render('leaderboardList');
+            await this.leaderboard.render('leaderboardListMobile');
         }
 
         document.getElementById('startBtn').disabled = false;
@@ -496,8 +524,8 @@ class Tetris {
         const leaderboardBtn = document.getElementById('leaderboardBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
 
-        leaderboardBtn.addEventListener('click', () => {
-            this.leaderboard.render('leaderboardListMobile');
+        leaderboardBtn.addEventListener('click', async () => {
+            await this.leaderboard.render('leaderboardListMobile');
             leaderboardModal.classList.add('active');
         });
 
