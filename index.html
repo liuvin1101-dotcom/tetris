@@ -8,8 +8,16 @@
 </head>
 <body>
     <div class="game-container">
+        <div class="leaderboard-panel">
+            <h2>Leaderboard</h2>
+            <ol id="leaderboardList"></ol>
+        </div>
         <div class="game-info">
             <h1>TETRIS</h1>
+            <div class="player-name">
+                <label>Player</label>
+                <div id="playerName">-</div>
+            </div>
             <div class="info-panel">
                 <div class="info-item">
                     <label>Score</label>
@@ -33,6 +41,7 @@
                 <button id="pauseBtn" disabled>PAUSE</button>
                 <button id="resetBtn">RESET</button>
             </div>
+            <button id="leaderboardBtn" class="leaderboard-button">LEADERBOARD</button>
             <div class="instructions">
                 <h3>Controls</h3>
                 <p>← → : Move</p>
@@ -48,6 +57,25 @@
         <div class="game-board">
             <canvas id="gameCanvas" width="280" height="560"></canvas>
             <button id="dropBtn" class="drop-button">DROP</button>
+        </div>
+    </div>
+
+    <!-- Mobile Leaderboard Modal -->
+    <div id="leaderboardModal" class="modal">
+        <div class="modal-content">
+            <h2>Leaderboard</h2>
+            <ol id="leaderboardListMobile"></ol>
+            <button id="closeModalBtn">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- Name Input Modal -->
+    <div id="nameModal" class="modal active">
+        <div class="modal-content">
+            <h2>Welcome to Tetris!</h2>
+            <p>Enter your name:</p>
+            <input type="text" id="nameInput" maxlength="15" placeholder="Your name">
+            <button id="nameSubmitBtn">PLAY</button>
         </div>
     </div>
 

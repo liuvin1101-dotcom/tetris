@@ -35,6 +35,53 @@ const TETROMINOES = {
     }
 };
 
+// Leaderboard Manager
+class Leaderboard {
+    constructor() {
+        this.maxEntries = 10;
+        this.storageKey = 'tetrisLeaderboard';
+    }
+
+    getScores() {
+        const data = localStorage.getItem(this.storageKey);
+        return data ? JSON.parse(data) : [];
+    }
+
+    addScore(name, score) {
+        if (score === 0) return;
+
+        const scores = this.getScores();
+        scores.push({ name, score, date: Date.now() });
+        scores.sort((a, b) => b.score - a.score);
+
+        // Keep only top entries
+        const trimmed = scores.slice(0, this.maxEntries);
+        localStorage.setItem(this.storageKey, JSON.stringify(trimmed));
+    }
+
+    render(containerId) {
+        const container = document.getElementById(containerId);
+        const scores = this.getScores();
+
+        container.innerHTML = '';
+
+        if (scores.length === 0) {
+            container.innerHTML = '<li style="color: #b0b0ff; text-align: center;">No scores yet</li>';
+            return;
+        }
+
+        scores.forEach((entry, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span class="rank">${index + 1}.</span>
+                <span class="name">${entry.name}</span>
+                <span class="lb-score">${entry.score}</span>
+            `;
+            container.appendChild(li);
+        });
+    }
+}
+
 class Tetris {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -53,8 +100,13 @@ class Tetris {
         this.dropCounter = 0;
         this.dropInterval = 1000;
 
+        this.playerName = '';
+        this.leaderboard = new Leaderboard();
+
         this.setupEventListeners();
         this.nextPiece = this.getRandomPiece();
+        this.leaderboard.render('leaderboardList');
+        this.leaderboard.render('leaderboardListMobile');
     }
 
     createBoard() {
@@ -76,10 +128,8 @@ class Tetris {
     spawnPiece() {
         this.currentPiece = this.nextPiece;
         this.nextPiece = this.getRandomPiece();
-        console.log('Piece spawned:', this.currentPiece);
-        
+
         if (this.collides()) {
-            console.log('Immediate collision detected!');
             this.gameOver = true;
             this.endGame();
         }
@@ -87,24 +137,21 @@ class Tetris {
 
     collides() {
         const { blocks, x, y } = this.currentPiece;
-        
+
         for (let row = 0; row < blocks.length; row++) {
             for (let col = 0; col < blocks[row].length; col++) {
                 if (blocks[row][col]) {
                     const newX = x + col;
                     const newY = y + row;
 
-                    // Check horizontal bounds
                     if (newX < 0 || newX >= COLS) {
                         return true;
                     }
 
-                    // Check if below board
                     if (newY >= ROWS) {
                         return true;
                     }
 
-                    // Check collision with placed blocks (only if within board height)
                     if (newY >= 0 && this.board[newY][newX]) {
                         return true;
                     }
@@ -144,12 +191,10 @@ class Tetris {
 
         if (linesCleared > 0) {
             this.lines += linesCleared;
-            
-            // Score calculation
+
             const scores = [0, 40, 100, 300, 1200];
             this.score += scores[linesCleared] * this.level;
-            
-            // Level up every 10 lines
+
             const newLevel = Math.floor(this.lines / 10) + 1;
             if (newLevel !== this.level) {
                 this.level = newLevel;
@@ -220,10 +265,10 @@ class Tetris {
 
     getGhostPieceY() {
         if (!this.currentPiece) return 0;
-        
+
         let ghostY = this.currentPiece.y;
         const originalY = this.currentPiece.y;
-        
+
         while (true) {
             this.currentPiece.y++;
             if (this.collides()) {
@@ -246,11 +291,9 @@ class Tetris {
     }
 
     draw() {
-        // Clear canvas
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw grid
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
         this.ctx.lineWidth = 0.5;
         for (let i = 0; i <= ROWS; i++) {
@@ -266,7 +309,6 @@ class Tetris {
             this.ctx.stroke();
         }
 
-        // Draw placed blocks
         for (let row = 0; row < ROWS; row++) {
             for (let col = 0; col < COLS; col++) {
                 if (this.board[row][col]) {
@@ -275,7 +317,6 @@ class Tetris {
             }
         }
 
-        // Draw current piece
         if (this.currentPiece) {
             const { blocks, x, y, color } = this.currentPiece;
             for (let row = 0; row < blocks.length; row++) {
@@ -287,7 +328,6 @@ class Tetris {
             }
         }
 
-        // Draw ghost piece (drop indicator)
         if (this.currentPiece) {
             const { blocks, x, color } = this.currentPiece;
             const ghostY = this.getGhostPieceY();
@@ -300,22 +340,20 @@ class Tetris {
             }
         }
 
-        // Draw game over overlay
         if (this.gameOver) {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
+
             this.ctx.fillStyle = '#fff';
             this.ctx.font = 'bold 40px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2);
         }
 
-        // Draw pause overlay
         if (this.isPaused && !this.gameOver) {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
+
             this.ctx.fillStyle = '#fff';
             this.ctx.font = 'bold 40px Arial';
             this.ctx.textAlign = 'center';
@@ -326,18 +364,16 @@ class Tetris {
     drawBlock(col, row, color) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(col * BLOCK_SIZE + 1, row * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-        
-        // Add shadow/border for depth
+
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
         this.ctx.lineWidth = 1;
         this.ctx.strokeRect(col * BLOCK_SIZE + 1, row * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
     }
 
     drawGhostBlock(col, row, color) {
-        // Draw semi-transparent outline showing where the piece will land
         this.ctx.fillStyle = 'rgba(200, 200, 200, 0.15)';
         this.ctx.fillRect(col * BLOCK_SIZE + 1, row * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-        
+
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         this.ctx.lineWidth = 1.5;
         this.ctx.strokeRect(col * BLOCK_SIZE + 1, row * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
@@ -357,7 +393,7 @@ class Tetris {
                     if (blocks[row][col]) {
                         const x = (offsetX + col) * 25;
                         const y = (offsetY + row) * 25;
-                        
+
                         this.nextCtx.fillStyle = color;
                         this.nextCtx.fillRect(x + 1, y + 1, 23, 23);
                         this.nextCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -376,14 +412,24 @@ class Tetris {
     }
 
     endGame() {
+        // Save score to leaderboard
+        if (this.playerName && this.score > 0) {
+            this.leaderboard.addScore(this.playerName, this.score);
+            this.leaderboard.render('leaderboardList');
+            this.leaderboard.render('leaderboardListMobile');
+        }
+
         document.getElementById('startBtn').disabled = false;
         document.getElementById('pauseBtn').disabled = true;
     }
 
+    setPlayerName(name) {
+        this.playerName = name;
+        document.getElementById('playerName').textContent = name;
+    }
+
     start() {
-        console.log('Start button clicked');
         if (!this.currentPiece) {
-            console.log('No current piece, spawning...');
             this.spawnPiece();
         }
         this.gameOver = false;
@@ -392,7 +438,6 @@ class Tetris {
         document.getElementById('startBtn').disabled = true;
         document.getElementById('pauseBtn').disabled = false;
         document.getElementById('pauseBtn').textContent = 'PAUSE';
-        console.log('Game started');
     }
 
     pause() {
@@ -411,7 +456,7 @@ class Tetris {
         this.dropInterval = 1000;
         this.currentPiece = null;
         this.nextPiece = this.getRandomPiece();
-        
+
         document.getElementById('startBtn').disabled = false;
         document.getElementById('pauseBtn').disabled = true;
         document.getElementById('pauseBtn').textContent = 'PAUSE';
@@ -426,6 +471,38 @@ class Tetris {
             if (!this.gameOver && !this.isPaused && this.currentPiece) {
                 this.hardDrop();
             }
+        });
+
+        // Name modal
+        const nameModal = document.getElementById('nameModal');
+        const nameInput = document.getElementById('nameInput');
+        const nameSubmitBtn = document.getElementById('nameSubmitBtn');
+
+        const submitName = () => {
+            const name = nameInput.value.trim() || 'Player';
+            this.setPlayerName(name);
+            nameModal.classList.remove('active');
+        };
+
+        nameSubmitBtn.addEventListener('click', submitName);
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitName();
+            }
+        });
+
+        // Leaderboard modal (mobile)
+        const leaderboardModal = document.getElementById('leaderboardModal');
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        leaderboardBtn.addEventListener('click', () => {
+            this.leaderboard.render('leaderboardListMobile');
+            leaderboardModal.classList.add('active');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            leaderboardModal.classList.remove('active');
         });
 
         document.addEventListener('keydown', (e) => {
@@ -468,9 +545,9 @@ class Tetris {
         let touchStartTime = 0;
         let lastTouchX = 0;
         let accumulatedDeltaX = 0;
-        const TAP_THRESHOLD = 150; // ms - max time for a tap
-        const TAP_MOVE_THRESHOLD = 15; // pixels - max movement for a tap
-        const MOVE_THRESHOLD = BLOCK_SIZE * 0.6; // pixels to move one column
+        const TAP_THRESHOLD = 150;
+        const TAP_MOVE_THRESHOLD = 15;
+        const MOVE_THRESHOLD = BLOCK_SIZE * 0.6;
 
         this.canvas.addEventListener('touchstart', (e) => {
             if (this.gameOver || this.isPaused || !this.currentPiece) return;
@@ -492,7 +569,6 @@ class Tetris {
             const deltaX = touch.clientX - lastTouchX;
             accumulatedDeltaX += deltaX;
 
-            // Move piece when accumulated movement exceeds threshold
             while (accumulatedDeltaX >= MOVE_THRESHOLD) {
                 this.moveRight();
                 accumulatedDeltaX -= MOVE_THRESHOLD;
@@ -502,7 +578,6 @@ class Tetris {
                 accumulatedDeltaX += MOVE_THRESHOLD;
             }
 
-            // Soft drop when swiping down
             const deltaY = touch.clientY - touchStartY;
             if (deltaY > BLOCK_SIZE * 2) {
                 this.softDrop();
@@ -519,7 +594,6 @@ class Tetris {
             const touchEndTime = Date.now();
             const touchDuration = touchEndTime - touchStartTime;
 
-            // Detect tap (short touch with minimal movement)
             const totalMoveX = Math.abs(lastTouchX - touchStartX);
             if (touchDuration < TAP_THRESHOLD && totalMoveX < TAP_MOVE_THRESHOLD) {
                 this.rotate();

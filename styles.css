@@ -26,11 +26,100 @@ body {
     max-height: 100vh;
 }
 
+/* Leaderboard Panel (Desktop) */
+.leaderboard-panel {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 140px;
+    max-width: 160px;
+}
+
+.leaderboard-panel h2 {
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.leaderboard-panel ol {
+    list-style: none;
+    padding: 0;
+}
+
+.leaderboard-panel li {
+    display: flex;
+    justify-content: space-between;
+    color: #e0e0ff;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-panel li:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-panel .rank {
+    color: #b0b0ff;
+    width: 20px;
+}
+
+.leaderboard-panel .name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.leaderboard-panel .lb-score {
+    color: #fff;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+/* Leaderboard Button (Mobile) */
+.leaderboard-button {
+    display: none;
+    width: 100%;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
 .game-info {
     display: flex;
     flex-direction: column;
     gap: 10px;
     min-width: 140px;
+}
+
+/* Player Name Display */
+.player-name {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 8px;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.player-name label {
+    display: block;
+    color: #b0b0ff;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.player-name div {
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 h1 {
@@ -183,6 +272,101 @@ button:disabled {
     background: linear-gradient(135deg, #ee5a5a 0%, #dd4a4a 100%);
 }
 
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h2 {
+    color: #fff;
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+.modal-content p {
+    color: #e0e0ff;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modal-content button {
+    padding: 12px 30px;
+    font-size: 14px;
+}
+
+.modal-content ol {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.modal-content li {
+    display: flex;
+    justify-content: space-between;
+    color: #e0e0ff;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-content li:last-child {
+    border-bottom: none;
+}
+
+.modal-content .rank {
+    color: #b0b0ff;
+    width: 25px;
+    text-align: left;
+}
+
+.modal-content .name {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.modal-content .lb-score {
+    color: #fff;
+    font-weight: bold;
+}
+
 @media (max-width: 768px) {
     body {
         padding: 5px;
@@ -194,6 +378,14 @@ button:disabled {
         padding: 10px;
     }
 
+    .leaderboard-panel {
+        display: none;
+    }
+
+    .leaderboard-button {
+        display: block;
+    }
+
     h1 {
         font-size: 24px;
     }
@@ -201,6 +393,10 @@ button:disabled {
     .game-info {
         min-width: auto;
         gap: 8px;
+    }
+
+    .player-name {
+        display: none;
     }
 
     .info-panel {
