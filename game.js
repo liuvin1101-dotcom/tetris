@@ -732,6 +732,13 @@ class Tetris {
             }
         });
 
+        // Mute button
+        const muteBtn = document.getElementById('muteBtn');
+        muteBtn.addEventListener('click', () => {
+            soundManager.enabled = !soundManager.enabled;
+            muteBtn.textContent = soundManager.enabled ? 'MUTE' : 'UNMUTE';
+        });
+
         // Name modal
         const nameModal = document.getElementById('nameModal');
         const nameInput = document.getElementById('nameInput');
