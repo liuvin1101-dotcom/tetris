@@ -410,12 +410,54 @@ class Tetris {
     }
 
     drawBlock(col, row, color) {
-        this.ctx.fillStyle = color;
-        this.ctx.fillRect(col * BLOCK_SIZE + 1, row * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+        const x = col * BLOCK_SIZE;
+        const y = row * BLOCK_SIZE;
+        const size = BLOCK_SIZE;
+        const bevel = 4;
 
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(col * BLOCK_SIZE + 1, row * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+        // Main block face
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
+
+        // Top highlight (lighter)
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + 1, y + 1);
+        this.ctx.lineTo(x + size - 1, y + 1);
+        this.ctx.lineTo(x + size - bevel, y + bevel);
+        this.ctx.lineTo(x + bevel, y + bevel);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        // Left highlight (lighter)
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + 1, y + 1);
+        this.ctx.lineTo(x + bevel, y + bevel);
+        this.ctx.lineTo(x + bevel, y + size - bevel);
+        this.ctx.lineTo(x + 1, y + size - 1);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        // Bottom shadow (darker)
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + 1, y + size - 1);
+        this.ctx.lineTo(x + bevel, y + size - bevel);
+        this.ctx.lineTo(x + size - bevel, y + size - bevel);
+        this.ctx.lineTo(x + size - 1, y + size - 1);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        // Right shadow (darker)
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + size - 1, y + 1);
+        this.ctx.lineTo(x + size - 1, y + size - 1);
+        this.ctx.lineTo(x + size - bevel, y + size - bevel);
+        this.ctx.lineTo(x + size - bevel, y + bevel);
+        this.ctx.closePath();
+        this.ctx.fill();
     }
 
     drawGhostBlock(col, row, color) {
@@ -435,18 +477,58 @@ class Tetris {
             const { blocks, color } = this.nextPiece;
             const offsetX = (4 - blocks[0].length) / 2;
             const offsetY = (4 - blocks.length) / 2;
+            const size = 25;
+            const bevel = 3;
 
             for (let row = 0; row < blocks.length; row++) {
                 for (let col = 0; col < blocks[row].length; col++) {
                     if (blocks[row][col]) {
-                        const x = (offsetX + col) * 25;
-                        const y = (offsetY + row) * 25;
+                        const x = (offsetX + col) * size;
+                        const y = (offsetY + row) * size;
 
+                        // Main face
                         this.nextCtx.fillStyle = color;
-                        this.nextCtx.fillRect(x + 1, y + 1, 23, 23);
-                        this.nextCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                        this.nextCtx.lineWidth = 1;
-                        this.nextCtx.strokeRect(x + 1, y + 1, 23, 23);
+                        this.nextCtx.fillRect(x + 1, y + 1, size - 2, size - 2);
+
+                        // Top highlight
+                        this.nextCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        this.nextCtx.beginPath();
+                        this.nextCtx.moveTo(x + 1, y + 1);
+                        this.nextCtx.lineTo(x + size - 1, y + 1);
+                        this.nextCtx.lineTo(x + size - bevel, y + bevel);
+                        this.nextCtx.lineTo(x + bevel, y + bevel);
+                        this.nextCtx.closePath();
+                        this.nextCtx.fill();
+
+                        // Left highlight
+                        this.nextCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                        this.nextCtx.beginPath();
+                        this.nextCtx.moveTo(x + 1, y + 1);
+                        this.nextCtx.lineTo(x + bevel, y + bevel);
+                        this.nextCtx.lineTo(x + bevel, y + size - bevel);
+                        this.nextCtx.lineTo(x + 1, y + size - 1);
+                        this.nextCtx.closePath();
+                        this.nextCtx.fill();
+
+                        // Bottom shadow
+                        this.nextCtx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                        this.nextCtx.beginPath();
+                        this.nextCtx.moveTo(x + 1, y + size - 1);
+                        this.nextCtx.lineTo(x + bevel, y + size - bevel);
+                        this.nextCtx.lineTo(x + size - bevel, y + size - bevel);
+                        this.nextCtx.lineTo(x + size - 1, y + size - 1);
+                        this.nextCtx.closePath();
+                        this.nextCtx.fill();
+
+                        // Right shadow
+                        this.nextCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                        this.nextCtx.beginPath();
+                        this.nextCtx.moveTo(x + size - 1, y + 1);
+                        this.nextCtx.lineTo(x + size - 1, y + size - 1);
+                        this.nextCtx.lineTo(x + size - bevel, y + size - bevel);
+                        this.nextCtx.lineTo(x + size - bevel, y + bevel);
+                        this.nextCtx.closePath();
+                        this.nextCtx.fill();
                     }
                 }
             }
