@@ -68,11 +68,28 @@ class Leaderboard {
         if (score === 0) return;
 
         try {
-            const { error } = await supabaseClient
+            // Check if player already has a score
+            const { data: existing } = await supabaseClient
                 .from('leaderboard')
-                .insert([{ name, score }]);
+                .select('id, score')
+                .eq('name', name)
+                .single();
 
-            if (error) throw error;
+            if (existing) {
+                // Only update if new score is higher
+                if (score > existing.score) {
+                    await supabaseClient
+                        .from('leaderboard')
+                        .update({ score })
+                        .eq('id', existing.id);
+                }
+            } else {
+                // Insert new entry
+                await supabaseClient
+                    .from('leaderboard')
+                    .insert([{ name, score }]);
+            }
+
             await this.fetchScores();
         } catch (error) {
             console.error('Error adding score:', error);
