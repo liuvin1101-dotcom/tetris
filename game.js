@@ -79,10 +79,12 @@ class Leaderboard {
             if (existing) {
                 // Only update if new score is higher
                 if (score > existing.score) {
-                    await supabaseClient
+                    const { error } = await supabaseClient
                         .from('leaderboard')
                         .update({ score })
-                        .eq('id', existing.id);
+                        .eq('name', name);
+
+                    if (error) console.error('Update error:', error);
                 }
             } else {
                 // Insert new entry
