@@ -95,6 +95,12 @@ class SoundManager {
             case 'rotate':
                 this.playTone(400, 0.05, 'sine', 0.15);
                 break;
+            case 'levelUp':
+                this.playTone(523, 0.1, 'square', 0.3);
+                setTimeout(() => this.playTone(659, 0.1, 'square', 0.3), 100);
+                setTimeout(() => this.playTone(784, 0.1, 'square', 0.3), 200);
+                setTimeout(() => this.playTone(1047, 0.2, 'square', 0.4), 300);
+                break;
         }
     }
 
@@ -335,6 +341,7 @@ class Tetris {
             if (newLevel !== this.level) {
                 this.level = newLevel;
                 this.dropInterval = Math.max(100, 1000 - (this.level - 1) * 50);
+                soundManager.play('levelUp');
             }
         }
     }
