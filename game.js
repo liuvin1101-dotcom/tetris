@@ -147,6 +147,9 @@ class Tetris {
         this.playerName = '';
         this.leaderboard = new Leaderboard();
 
+        // Particle system
+        this.particles = [];
+
         this.setupEventListeners();
         this.nextPiece = this.getRandomPiece();
         this.initLeaderboard();
@@ -284,9 +287,64 @@ class Tetris {
             this.currentPiece.y++;
         }
         this.currentPiece.y--;
+
+        // Spawn particles at each block position
+        this.spawnParticles();
+
         this.merge();
         this.clearLines();
         this.spawnPiece();
+    }
+
+    spawnParticles() {
+        const { blocks, x, y } = this.currentPiece;
+        const rainbowColors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+
+        for (let row = 0; row < blocks.length; row++) {
+            for (let col = 0; col < blocks[row].length; col++) {
+                if (blocks[row][col]) {
+                    const px = (x + col) * BLOCK_SIZE + BLOCK_SIZE / 2;
+                    const py = (y + row) * BLOCK_SIZE + BLOCK_SIZE / 2;
+
+                    // Spawn multiple particles per block
+                    for (let i = 0; i < 5; i++) {
+                        this.particles.push({
+                            x: px,
+                            y: py,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: -Math.random() * 4 - 2,
+                            gravity: 0.3,
+                            size: Math.random() * 4 + 2,
+                            color: rainbowColors[Math.floor(Math.random() * rainbowColors.length)],
+                            life: 1
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    updateParticles() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.life -= 0.02;
+
+            if (p.life <= 0 || p.y > this.canvas.height) {
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+
+    drawParticles() {
+        for (const p of this.particles) {
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        }
+        this.ctx.globalAlpha = 1;
     }
 
     rotate() {
@@ -328,6 +386,9 @@ class Tetris {
     }
 
     update(deltaTime) {
+        // Always update particles even when paused/game over
+        this.updateParticles();
+
         if (this.gameOver || this.isPaused) return;
 
         this.dropCounter += deltaTime;
@@ -387,6 +448,9 @@ class Tetris {
                 }
             }
         }
+
+        // Draw particles
+        this.drawParticles();
 
         if (this.gameOver) {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
