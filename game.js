@@ -69,11 +69,12 @@ class Leaderboard {
 
         try {
             // Check if player already has a score
-            const { data: existing } = await supabaseClient
+            const { data } = await supabaseClient
                 .from('leaderboard')
                 .select('id, score')
-                .eq('name', name)
-                .single();
+                .eq('name', name);
+
+            const existing = data && data.length > 0 ? data[0] : null;
 
             if (existing) {
                 // Only update if new score is higher
