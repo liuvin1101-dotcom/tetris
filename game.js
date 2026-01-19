@@ -40,38 +40,36 @@ class SoundManager {
     constructor() {
         this.audioContext = null;
         this.enabled = true;
-        this.initialized = false;
-        this.setupUserInteraction();
+        this.unlocked = false;
     }
 
-    setupUserInteraction() {
-        const initAudio = () => {
-            if (!this.initialized) {
-                this.init();
-                if (this.audioContext && this.audioContext.state === 'suspended') {
-                    this.audioContext.resume();
-                }
-                this.initialized = true;
-            }
-        };
+    unlock() {
+        if (this.unlocked) return;
 
-        document.addEventListener('touchstart', initAudio, { once: true });
-        document.addEventListener('touchend', initAudio, { once: true });
-        document.addEventListener('click', initAudio, { once: true });
-        document.addEventListener('keydown', initAudio, { once: true });
-    }
-
-    init() {
+        // Create AudioContext on first user interaction
         if (!this.audioContext) {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
+
+        // Resume if suspended
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+
+        // Play silent sound to unlock audio on iOS
+        const buffer = this.audioContext.createBuffer(1, 1, 22050);
+        const source = this.audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.audioContext.destination);
+        source.start(0);
+
+        this.unlocked = true;
     }
 
     play(type) {
-        if (!this.enabled) return;
-        this.init();
+        if (!this.enabled || !this.audioContext) return;
 
-        // Resume if suspended (mobile browsers)
+        // Try to resume if suspended
         if (this.audioContext.state === 'suspended') {
             this.audioContext.resume();
         }
@@ -747,10 +745,14 @@ class Tetris {
     }
 
     setupEventListeners() {
-        document.getElementById('startBtn').addEventListener('click', () => this.start());
+        document.getElementById('startBtn').addEventListener('click', () => {
+            soundManager.unlock();
+            this.start();
+        });
         document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
         document.getElementById('resetBtn').addEventListener('click', () => this.reset());
         document.getElementById('dropBtn').addEventListener('click', () => {
+            soundManager.unlock();
             if (!this.gameOver && !this.isPaused && this.currentPiece) {
                 this.hardDrop();
             }
@@ -769,6 +771,7 @@ class Tetris {
         const nameSubmitBtn = document.getElementById('nameSubmitBtn');
 
         const submitName = () => {
+            soundManager.unlock();
             const name = nameInput.value.trim() || 'Player';
             this.setPlayerName(name);
             nameModal.classList.remove('active');
@@ -840,6 +843,7 @@ class Tetris {
         const MOVE_THRESHOLD = BLOCK_SIZE * 0.6;
 
         this.canvas.addEventListener('touchstart', (e) => {
+            soundManager.unlock();
             if (this.gameOver || this.isPaused || !this.currentPiece) return;
             e.preventDefault();
 
