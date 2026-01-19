@@ -628,7 +628,7 @@ class Tetris {
 
             const deltaY = touch.clientY - touchStartY;
             if (deltaY > BLOCK_SIZE * 2) {
-                this.softDrop();
+                this.hardDrop();
                 touchStartY = touch.clientY;
             }
 
