@@ -35,6 +35,67 @@ const TETROMINOES = {
     }
 };
 
+// Sound Effects Manager
+class SoundManager {
+    constructor() {
+        this.audioContext = null;
+        this.enabled = true;
+    }
+
+    init() {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    play(type) {
+        if (!this.enabled) return;
+        this.init();
+
+        switch (type) {
+            case 'hardDrop':
+                this.playTone(150, 0.1, 'square', 0.3);
+                setTimeout(() => this.playTone(100, 0.1, 'square', 0.2), 50);
+                break;
+            case 'drop':
+                this.playTone(200, 0.08, 'sine', 0.2);
+                break;
+            case 'clear':
+                this.playTone(523, 0.1, 'square', 0.3);
+                setTimeout(() => this.playTone(659, 0.1, 'square', 0.3), 100);
+                setTimeout(() => this.playTone(784, 0.15, 'square', 0.3), 200);
+                break;
+            case 'gameOver':
+                this.playTone(294, 0.3, 'sawtooth', 0.3);
+                setTimeout(() => this.playTone(262, 0.3, 'sawtooth', 0.3), 300);
+                setTimeout(() => this.playTone(220, 0.5, 'sawtooth', 0.3), 600);
+                break;
+            case 'rotate':
+                this.playTone(400, 0.05, 'sine', 0.15);
+                break;
+        }
+    }
+
+    playTone(frequency, duration, type = 'sine', volume = 0.3) {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+
+        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+}
+
+const soundManager = new SoundManager();
+
 // Supabase Configuration
 const SUPABASE_URL = 'https://qjsgbmyqcqvyqojucvar.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_wmqwFElSxCC2JNY8_KmdCQ_c1MmFjRm';
@@ -182,6 +243,7 @@ class Tetris {
 
         if (this.collides()) {
             this.gameOver = true;
+            soundManager.play('gameOver');
             this.endGame();
         }
     }
@@ -242,6 +304,7 @@ class Tetris {
 
         if (linesCleared > 0) {
             this.lines += linesCleared;
+            soundManager.play('clear');
 
             const scores = [0, 40, 100, 300, 1200];
             this.score += scores[linesCleared] * this.level;
@@ -275,6 +338,7 @@ class Tetris {
         this.currentPiece.y++;
         if (this.collides()) {
             this.currentPiece.y--;
+            soundManager.play('drop');
             this.merge();
             this.clearLines();
             this.spawnPiece();
@@ -290,6 +354,7 @@ class Tetris {
 
         // Spawn particles at each block position
         this.spawnParticles();
+        soundManager.play('hardDrop');
 
         this.merge();
         this.clearLines();
