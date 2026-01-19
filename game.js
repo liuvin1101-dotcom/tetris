@@ -472,8 +472,8 @@ class Tetris {
     }
 
     setPlayerName(name) {
-        this.playerName = name;
-        document.getElementById('playerName').textContent = name;
+        this.playerName = name.toUpperCase();
+        document.getElementById('playerName').textContent = this.playerName;
     }
 
     start() {
