@@ -40,6 +40,25 @@ class SoundManager {
     constructor() {
         this.audioContext = null;
         this.enabled = true;
+        this.initialized = false;
+        this.setupUserInteraction();
+    }
+
+    setupUserInteraction() {
+        const initAudio = () => {
+            if (!this.initialized) {
+                this.init();
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+                this.initialized = true;
+            }
+        };
+
+        document.addEventListener('touchstart', initAudio, { once: true });
+        document.addEventListener('touchend', initAudio, { once: true });
+        document.addEventListener('click', initAudio, { once: true });
+        document.addEventListener('keydown', initAudio, { once: true });
     }
 
     init() {
@@ -51,6 +70,11 @@ class SoundManager {
     play(type) {
         if (!this.enabled) return;
         this.init();
+
+        // Resume if suspended (mobile browsers)
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
 
         switch (type) {
             case 'hardDrop':
