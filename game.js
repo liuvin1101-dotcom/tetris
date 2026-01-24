@@ -157,29 +157,16 @@ class Leaderboard {
         if (score === 0) return;
 
         try {
-            // Check if player already has a score
-            const { data } = await supabaseClient
-                .from('leaderboard')
-                .select('id, score')
-                .eq('name', name);
+            // Submit score through secure serverless function
+            const response = await fetch('/.netlify/functions/submit-score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, score })
+            });
 
-            const existing = data && data.length > 0 ? data[0] : null;
-
-            if (existing) {
-                // Only update if new score is higher
-                if (score > existing.score) {
-                    const { error } = await supabaseClient
-                        .from('leaderboard')
-                        .update({ score })
-                        .eq('name', name);
-
-                    if (error) console.error('Update error:', error);
-                }
-            } else {
-                // Insert new entry
-                await supabaseClient
-                    .from('leaderboard')
-                    .insert([{ name, score }]);
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Submit error:', error);
             }
 
             await this.fetchScores();
