@@ -124,11 +124,6 @@ class SoundManager {
 
 const soundManager = new SoundManager();
 
-// Supabase Configuration
-const SUPABASE_URL = 'https://qjsgbmyqcqvyqojucvar.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_wmqwFElSxCC2JNY8_KmdCQ_c1MmFjRm';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // Leaderboard Manager
 class Leaderboard {
     constructor() {
@@ -138,14 +133,9 @@ class Leaderboard {
 
     async fetchScores() {
         try {
-            const { data, error } = await supabaseClient
-                .from('leaderboard')
-                .select('name, score')
-                .order('score', { ascending: false })
-                .limit(this.maxEntries);
-
-            if (error) throw error;
-            this.scores = data || [];
+            const response = await fetch('/.netlify/functions/get-scores');
+            if (!response.ok) throw new Error('Failed to fetch scores');
+            this.scores = await response.json();
             return this.scores;
         } catch (error) {
             console.error('Error fetching scores:', error);
